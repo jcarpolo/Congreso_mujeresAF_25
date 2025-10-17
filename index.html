@@ -88,6 +88,11 @@
       await updateDoc(ref, { [campo]: valor });
     };
   </script>
+    <!-- Librería para generar Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- Librería para generar PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col items-center py-10">
   <h1 class="text-3xl font-semibold mb-6 text-gray-800">📋 Lista de Asistentes (Colaborativa)</h1>
