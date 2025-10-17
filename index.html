@@ -93,6 +93,53 @@
 
     <!-- Librería para generar PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+  // Botones de exportación
+  const exportExcelBtn = document.getElementById('export-excel');
+  const exportPdfBtn = document.getElementById('export-pdf');
+
+  // Suponemos que tu tabla tiene id="asistentes-table"
+  function obtenerDatosTabla() {
+    const tabla = document.getElementById("asistentes-table");
+    const filas = tabla.querySelectorAll("tr");
+    const datos = [];
+
+    filas.forEach(fila => {
+      const celdas = fila.querySelectorAll("th, td");
+      const filaDatos = [];
+      celdas.forEach(celda => filaDatos.push(celda.innerText.trim()));
+      datos.push(filaDatos);
+    });
+
+    return datos;
+  }
+
+  // 📊 Exportar a Excel
+  exportExcelBtn.addEventListener("click", () => {
+    const datos = obtenerDatosTabla();
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(datos);
+    XLSX.utils.book_append_sheet(wb, ws, "Asistentes");
+    XLSX.writeFile(wb, "lista_asistentes.xlsx");
+  });
+
+  // 📄 Exportar a PDF
+  exportPdfBtn.addEventListener("click", async () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const datos = obtenerDatosTabla();
+
+    // Configuración básica del PDF
+    let y = 10;
+    datos.forEach((fila, i) => {
+      doc.text(fila.join(" | "), 10, y);
+      y += 10;
+      if (y > 280) { doc.addPage(); y = 10; }
+    });
+
+    doc.save("lista_asistentes.pdf");
+  });
+</script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col items-center py-10">
   <h1 class="text-3xl font-semibold mb-6 text-gray-800">📋 Lista de Asistentes (Colaborativa)</h1>
