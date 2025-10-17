@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listado de Asistentes - Congreso</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase -->
+  <script type="module">
+    // ---------------------------
+    // 🔥 IMPORTAR FIREBASE SDKs
+    // ---------------------------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, onSnapshot, deleteDoc, doc, updateDoc } 
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // --------------------------------------------------
+    // 🔧 CONFIGURACIÓN DE TU PROYECTO FIREBASE (PÉGALA AQUÍ)
+    // --------------------------------------------------
+   const firebaseConfig = {
+  apiKey: "AIzaSyArXBCsTBrtvPFV-OpcFvvKJLrLO6y5dSQ",
+  authDomain: "mujeres-af-25.firebaseapp.com",
+  projectId: "mujeres-af-25",
+  storageBucket: "mujeres-af-25.firebasestorage.app",
+  messagingSenderId: "694350834729",
+  appId: "1:694350834729:web:93875951d702c5b75f0038",
+  measurementId: "G-7BFJ2R1NTQ"
+    };
+
+    // Inicializamos Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Referencia a la colección de asistentes
+    const asistentesRef = collection(db, "asistentes");
+
+    // ---------------------------
+    // 🔹 FUNCIONES
+    // ---------------------------
+
+    const form = document.getElementById("asistenteForm");
+    const tabla = document.getElementById("tablaAsistentes");
+
+    // Añadir un nuevo asistente
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nuevo = {
+        nombre: form.nombre.value,
+        telefono: form.telefono.value,
+        abono: form.abono.value,
+        coche: form.coche.value,
+        acompanante: form.acompanante.value,
+        timestamp: Date.now()
+      };
+      await addDoc(asistentesRef, nuevo);
+      form.reset();
+    });
+
+    // Mostrar asistentes en tiempo real
+    onSnapshot(asistentesRef, (snapshot) => {
+      tabla.innerHTML = "";
+      snapshot.forEach((docSnap) => {
+        const a = docSnap.data();
+        const id = docSnap.id;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.nombre || ''}" onchange="editarCampo('${id}', 'nombre', this.value)"></td>
+          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.telefono || ''}" onchange="editarCampo('${id}', 'telefono', this.value)"></td>
+          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.abono || ''}" onchange="editarCampo('${id}', 'abono', this.value)"></td>
+          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.coche || ''}" onchange="editarCampo('${id}', 'coche', this.value)"></td>
+          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.acompanante || ''}" onchange="editarCampo('${id}', 'acompanante', this.value)"></td>
+          <td class="p-3 border-b text-center">
+            <button onclick="borrarAsistente('${id}')" class="text-red-500 hover:text-red-700">🗑️</button>
+          </td>
+        `;
+        tabla.appendChild(row);
+      });
+    });
+
+    // Borrar asistente
+    window.borrarAsistente = async (id) => {
+      await deleteDoc(doc(db, "asistentes", id));
+    };
+
+    // Editar campo
+    window.editarCampo = async (id, campo, valor) => {
+      const ref = doc(db, "asistentes", id);
+      await updateDoc(ref, { [campo]: valor });
+    };
+  </script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center py-10">
+  <h1 class="text-3xl font-semibold mb-6 text-gray-800">📋 Lista de Asistentes (Colaborativa)</h1>
+
+  <!-- Formulario -->
+  <form id="asistenteForm" class="bg-white shadow-md rounded-2xl p-6 w-full max-w-2xl mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <input id="nombre" name="nombre" type="text" placeholder="Nombre" required class="border rounded-lg p-2 w-full">
+      <input id="telefono" name="telefono" type="text" placeholder="Teléfono" required class="border rounded-lg p-2 w-full">
+      <input id="abono" name="abono" type="text" placeholder="Abono (Ej: VIP, General...)" class="border rounded-lg p-2 w-full">
+      <input id="coche" name="coche" type="text" placeholder="Coche (Ej: Sí / Matrícula)" class="border rounded-lg p-2 w-full">
+      <input id="acompanante" name="acompanante" type="text" placeholder="Acompañante" class="border rounded-lg p-2 w-full">
+    </div>
+    <button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+      Añadir Asistente
+    </button>
+  </form>
+
+  <!-- Tabla -->
+  <div class="bg-white shadow-md rounded-2xl p-6 w-full max-w-5xl">
+    <table class="w-full border-collapse">
+      <thead>
+        <tr class="bg-gray-100 text-gray-700 text-left">
+          <th class="p-3 border-b">Nombre</th>
+          <th class="p-3 border-b">Teléfono</th>
+          <th class="p-3 border-b">Abono</th>
+          <th class="p-3 border-b">Coche</th>
+          <th class="p-3 border-b">Acompañante</th>
+          <th class="p-3 border-b text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaAsistentes" class="text-gray-800"></tbody>
+    </table>
+  </div>
+</body>
+</html>
