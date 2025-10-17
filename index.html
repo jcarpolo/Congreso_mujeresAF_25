@@ -15,7 +15,7 @@
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     // --------------------------------------------------
-    // 🔧 CONFIGURACIÓN DE TU PROYECTO FIREBASE (PÉGALA AQUÍ)
+    // 🔧 CONFIGURACIÓN DE TU PROYECTO FIREBASE 
     // --------------------------------------------------
    const firebaseConfig = {
   apiKey: "AIzaSyArXBCsTBrtvPFV-OpcFvvKJLrLO6y5dSQ",
@@ -100,7 +100,7 @@
 
   // Suponemos que tu tabla tiene id="asistentes-table"
   function obtenerDatosTabla() {
-    const tabla = document.getElementById("asistentes-table");
+    const tabla = document.getElementById("tablaAsistentes");
     const filas = tabla.querySelectorAll("tr");
     const datos = [];
 
@@ -142,7 +142,7 @@
 </script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col items-center py-10">
-  <h1 class="text-3xl font-semibold mb-6 text-gray-800">📋 Lista de Asistentes (Colaborativa)</h1>
+  <h1 class="text-3xl font-semibold mb-6 text-gray-800">📋 Lista de Asistentes Congreso</h1>
 
   <!-- Formulario -->
   <form id="asistenteForm" class="bg-white shadow-md rounded-2xl p-6 w-full max-w-2xl mb-8">
