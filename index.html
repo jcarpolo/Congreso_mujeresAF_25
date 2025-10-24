@@ -17,14 +17,14 @@
     // --------------------------------------------------
     // 🔧 CONFIGURACIÓN DE TU PROYECTO FIREBASE 
     // --------------------------------------------------
-   const firebaseConfig = {
-  apiKey: "AIzaSyArXBCsTBrtvPFV-OpcFvvKJLrLO6y5dSQ",
-  authDomain: "mujeres-af-25.firebaseapp.com",
-  projectId: "mujeres-af-25",
-  storageBucket: "mujeres-af-25.firebasestorage.app",
-  messagingSenderId: "694350834729",
-  appId: "1:694350834729:web:93875951d702c5b75f0038",
-  measurementId: "G-7BFJ2R1NTQ"
+    const firebaseConfig = {
+      apiKey: "AIzaSyArXBCsTBrtvPFV-OpcFvvKJLrLO6y5dSQ",
+      authDomain: "mujeres-af-25.firebaseapp.com",
+      projectId: "mujeres-af-25",
+      storageBucket: "mujeres-af-25.firebasestorage.app",
+      messagingSenderId: "694350834729",
+      appId: "1:694350834729:web:93875951d702c5b75f0038",
+      measurementId: "G-7BFJ2R1NTQ"
     };
 
     // Inicializamos Firebase
@@ -44,16 +44,22 @@
     // Añadir un nuevo asistente
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const nuevo = {
-        nombre: form.nombre.value,
-        telefono: form.telefono.value,
-        abono: form.abono.value,
-        coche: form.coche.value,
-        acompanante: form.acompanante.value,
-        timestamp: Date.now()
-      };
-      await addDoc(asistentesRef, nuevo);
-      form.reset();
+      try {
+        const nuevo = {
+          nombre: form.nombre.value,
+          telefono: form.telefono.value,
+          abono: form.abono.value,
+          coche: form.coche.value,
+          acompanante: form.acompanante.value,
+          timestamp: Date.now()
+        };
+        await addDoc(asistentesRef, nuevo);
+        form.reset();
+        mostrarMensaje("✅ Asistente añadido correctamente", "success");
+      } catch (error) {
+        console.error("Error al añadir:", error);
+        mostrarMensaje("❌ Error al añadir asistente", "error");
+      }
     });
 
     // Mostrar asistentes en tiempo real
@@ -63,104 +69,94 @@
         const a = docSnap.data();
         const id = docSnap.id;
         const row = document.createElement("tr");
+        row.className = "hover:bg-gray-50";
         row.innerHTML = `
-          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.nombre || ''}" onchange="editarCampo('${id}', 'nombre', this.value)"></td>
-          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.telefono || ''}" onchange="editarCampo('${id}', 'telefono', this.value)"></td>
-          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.abono || ''}" onchange="editarCampo('${id}', 'abono', this.value)"></td>
-          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.coche || ''}" onchange="editarCampo('${id}', 'coche', this.value)"></td>
-          <td class="p-3 border-b"><input class="bg-transparent w-full" value="${a.acompanante || ''}" onchange="editarCampo('${id}', 'acompanante', this.value)"></td>
+          <td class="p-3 border-b"><input class="bg-transparent w-full focus:outline-none focus:bg-yellow-50 rounded px-1" value="${a.nombre || ''}" onchange="editarCampo('${id}', 'nombre', this.value)"></td>
+          <td class="p-3 border-b"><input class="bg-transparent w-full focus:outline-none focus:bg-yellow-50 rounded px-1" value="${a.telefono || ''}" onchange="editarCampo('${id}', 'telefono', this.value)"></td>
+          <td class="p-3 border-b"><input class="bg-transparent w-full focus:outline-none focus:bg-yellow-50 rounded px-1" value="${a.abono || ''}" onchange="editarCampo('${id}', 'abono', this.value)"></td>
+          <td class="p-3 border-b"><input class="bg-transparent w-full focus:outline-none focus:bg-yellow-50 rounded px-1" value="${a.coche || ''}" onchange="editarCampo('${id}', 'coche', this.value)"></td>
+          <td class="p-3 border-b"><input class="bg-transparent w-full focus:outline-none focus:bg-yellow-50 rounded px-1" value="${a.acompanante || ''}" onchange="editarCampo('${id}', 'acompanante', this.value)"></td>
           <td class="p-3 border-b text-center">
-            <button onclick="borrarAsistente('${id}')" class="text-red-500 hover:text-red-700">🗑️</button>
+            <button onclick="borrarAsistente('${id}')" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition">🗑️</button>
           </td>
         `;
         tabla.appendChild(row);
       });
+      
+      // Actualizar contador
+      document.getElementById("totalAsistentes").textContent = snapshot.size;
     });
 
     // Borrar asistente
     window.borrarAsistente = async (id) => {
-      await deleteDoc(doc(db, "asistentes", id));
+      if (confirm("¿Estás seguro de eliminar este asistente?")) {
+        try {
+          await deleteDoc(doc(db, "asistentes", id));
+          mostrarMensaje("🗑️ Asistente eliminado", "success");
+        } catch (error) {
+          console.error("Error al borrar:", error);
+          mostrarMensaje("❌ Error al eliminar", "error");
+        }
+      }
     };
 
     // Editar campo
     window.editarCampo = async (id, campo, valor) => {
-      const ref = doc(db, "asistentes", id);
-      await updateDoc(ref, { [campo]: valor });
+      try {
+        const ref = doc(db, "asistentes", id);
+        await updateDoc(ref, { [campo]: valor });
+      } catch (error) {
+        console.error("Error al editar:", error);
+        mostrarMensaje("❌ Error al guardar cambios", "error");
+      }
+    };
+
+    // Función para mostrar mensajes
+    window.mostrarMensaje = (texto, tipo) => {
+      const mensaje = document.getElementById("mensaje");
+      mensaje.textContent = texto;
+      mensaje.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg transition-opacity ${
+        tipo === "success" ? "bg-green-500" : "bg-red-500"
+      } text-white`;
+      mensaje.style.opacity = "1";
+      setTimeout(() => { mensaje.style.opacity = "0"; }, 3000);
     };
   </script>
-    <!-- Librería para generar Excel -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-    <!-- Librería para generar PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>
-  // Botones de exportación
-  const exportExcelBtn = document.getElementById('export-excel');
-  const exportPdfBtn = document.getElementById('export-pdf');
-
-  // Suponemos que tu tabla tiene id="asistentes-table"
-  function obtenerDatosTabla() {
-    const tabla = document.getElementById("tablaAsistentes");
-    const filas = tabla.querySelectorAll("tr");
-    const datos = [];
-
-    filas.forEach(fila => {
-      const celdas = fila.querySelectorAll("th, td");
-      const filaDatos = [];
-      celdas.forEach(celda => filaDatos.push(celda.innerText.trim()));
-      datos.push(filaDatos);
-    });
-
-    return datos;
-  }
-
-  // 📊 Exportar a Excel
-  exportExcelBtn.addEventListener("click", () => {
-    const datos = obtenerDatosTabla();
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(datos);
-    XLSX.utils.book_append_sheet(wb, ws, "Asistentes");
-    XLSX.writeFile(wb, "lista_asistentes.xlsx");
-  });
-
-  // 📄 Exportar a PDF
-  exportPdfBtn.addEventListener("click", async () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const datos = obtenerDatosTabla();
-
-    // Configuración básica del PDF
-    let y = 10;
-    datos.forEach((fila, i) => {
-      doc.text(fila.join(" | "), 10, y);
-      y += 10;
-      if (y > 280) { doc.addPage(); y = 10; }
-    });
-
-    doc.save("lista_asistentes.pdf");
-  });
-</script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col items-center py-10">
-  <h1 class="text-3xl font-semibold mb-6 text-gray-800">📋 Lista de Asistentes Congreso</h1>
+  <!-- Mensaje de notificación -->
+  <div id="mensaje" class="fixed top-4 right-4 opacity-0 transition-opacity duration-300"></div>
+
+  <h1 class="text-3xl font-semibold mb-2 text-gray-800">📋 Lista de Asistentes Congreso</h1>
+  <p class="text-gray-600 mb-6">Total de asistentes: <span id="totalAsistentes" class="font-bold text-blue-600">0</span></p>
 
   <!-- Formulario -->
   <form id="asistenteForm" class="bg-white shadow-md rounded-2xl p-6 w-full max-w-2xl mb-8">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <input id="nombre" name="nombre" type="text" placeholder="Nombre" required class="border rounded-lg p-2 w-full">
-      <input id="telefono" name="telefono" type="text" placeholder="Teléfono" required class="border rounded-lg p-2 w-full">
-      <input id="abono" name="abono" type="number" placeholder="Abono (Ej: 50€, 20€)" class="border rounded-lg p-2 w-full">
-      <input id="coche" name="coche" type="text" placeholder="Coche (Ej: Sí / Matrícula)" class="border rounded-lg p-2 w-full">
-      <input id="acompanante" name="acompanante" type="text" placeholder="Acompañante" class="border rounded-lg p-2 w-full">
+      <input id="nombre" name="nombre" type="text" placeholder="Nombre" required class="border rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <input id="telefono" name="telefono" type="text" placeholder="Teléfono" required class="border rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <input id="abono" name="abono" type="text" placeholder="Abono (Ej: 50€, 20€)" class="border rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <input id="coche" name="coche" type="text" placeholder="Coche (Ej: Sí / Matrícula)" class="border rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <input id="acompanante" name="acompanante" type="text" placeholder="Acompañante" class="border rounded-lg p-2 w-full md:col-span-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
     </div>
-    <button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+    <button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
       Añadir Asistente
     </button>
   </form>
 
+  <!-- Botones de exportación -->
+  <div class="flex justify-end gap-3 mb-4 w-full max-w-5xl">
+    <button id="export-excel" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow-md">
+      📊 Exportar a Excel
+    </button>
+    <button id="export-pdf" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition shadow-md">
+      📄 Exportar a PDF
+    </button>
+  </div>
+
   <!-- Tabla -->
-  <div class="bg-white shadow-md rounded-2xl p-6 w-full max-w-5xl">
-    <table class="w-full border-collapse">
+  <div class="bg-white shadow-md rounded-2xl p-6 w-full max-w-5xl overflow-x-auto">
+    <table id="tablaCompleta" class="w-full border-collapse">
       <thead>
         <tr class="bg-gray-100 text-gray-700 text-left">
           <th class="p-3 border-b">Nombre</th>
@@ -174,15 +170,109 @@
       <tbody id="tablaAsistentes" class="text-gray-800"></tbody>
     </table>
   </div>
-  <!-- PDF ó EXCEL -->
-  <div class="flex justify-end gap-3 mb-4">
-  <button id="export-excel" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
-    📊 Exportar a Excel
-  </button>
-  <button id="export-pdf" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
-    📄 Exportar a PDF
-  </button>
-</div>
+  
+  <!-- Librería para generar Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Librería para generar PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  
+  <script>
+    // Botones de exportación
+    const exportExcelBtn = document.getElementById('export-excel');
+    const exportPdfBtn = document.getElementById('export-pdf');
+
+    // --- FUNCIÓN OBTENER DATOS CORREGIDA ---
+    function obtenerDatosTabla() {
+      const tbody = document.getElementById("tablaAsistentes");
+      const datos = [];
+
+      // 1. Obtener Cabeceras (Headers)
+      const cabecera = ["Nombre", "Teléfono", "Abono", "Coche", "Acompañante"];
+      datos.push(cabecera);
+
+      // 2. Obtener Filas de Datos (Body)
+      const filas = tbody.querySelectorAll("tr");
+      filas.forEach(fila => {
+        const filaDatos = [];
+        // Leemos el .value de cada <input> (excluyendo el botón de borrar)
+        const inputs = fila.querySelectorAll("input");
+        inputs.forEach(input => {
+          filaDatos.push(input.value);
+        });
+        datos.push(filaDatos);
+      });
+
+      return datos;
+    }
+
+    // 📊 Exportar a Excel
+    exportExcelBtn.addEventListener("click", () => {
+      try {
+        const datos = obtenerDatosTabla();
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(datos);
+        
+        // Ajustar ancho de columnas
+        ws['!cols'] = [
+          { wch: 25 }, // Nombre
+          { wch: 15 }, // Teléfono
+          { wch: 10 }, // Abono
+          { wch: 15 }, // Coche
+          { wch: 25 }  // Acompañante
+        ];
+        
+        XLSX.utils.book_append_sheet(wb, ws, "Asistentes");
+        XLSX.writeFile(wb, "lista_asistentes.xlsx");
+        mostrarMensaje("✅ Excel exportado correctamente", "success");
+      } catch (error) {
+        console.error("Error al exportar Excel:", error);
+        mostrarMensaje("❌ Error al exportar Excel", "error");
+      }
+    });
+
+    // 📄 Exportar a PDF (mejorado con autoTable)
+    exportPdfBtn.addEventListener("click", async () => {
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const datos = obtenerDatosTabla();
+        
+        // Título
+        doc.setFontSize(16);
+        doc.text("Lista de Asistentes - Congreso", 14, 15);
+        
+        // Fecha
+        doc.setFontSize(10);
+        doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 14, 22);
+        doc.text(`Total asistentes: ${datos.length - 1}`, 14, 27);
+        
+        // Tabla con autoTable (mucho mejor formato)
+        doc.autoTable({
+          startY: 32,
+          head: [datos[0]],
+          body: datos.slice(1),
+          theme: 'striped',
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [59, 130, 246] },
+          columnStyles: {
+            0: { cellWidth: 40 },  // Nombre
+            1: { cellWidth: 30 },  // Teléfono
+            2: { cellWidth: 25 },  // Abono
+            3: { cellWidth: 35 },  // Coche
+            4: { cellWidth: 40 }   // Acompañante
+          }
+        });
+        
+        doc.save("lista_asistentes.pdf");
+        mostrarMensaje("✅ PDF exportado correctamente", "success");
+      } catch (error) {
+        console.error("Error al exportar PDF:", error);
+        mostrarMensaje("❌ Error al exportar PDF", "error");
+      }
+    });
+  </script>
 
 </body>
 </html>
