@@ -62,14 +62,29 @@
       }
     });
 
-    // Mostrar asistentes en tiempo real
+    // Mostrar asistentes en tiempo real con orden alfabético
     onSnapshot(asistentesRef, (snapshot) => {
       tabla.innerHTML = "";
+      
+      // Convertir snapshot a array y ordenar alfabéticamente por nombre
+      const asistentes =[];
       snapshot.forEach((docSnap) => {
-        const a = docSnap.data();
-        const id = docSnap.id;
+             asistentes.push({
+          id: docSnap.id,
+          data: docSnap.data()
+        });
+      });
+      
+      // Ordenar alfabéticamente por nombre (insensible a mayúsculas/minúsculas)
+      asistentes.sort((a, b) => {
+        const nombreA = (a.data.nombre || '').toLowerCase();
+        const nombreB = (b.data.nombre || '').toLowerCase();
+        return nombreA.localeCompare(nombreB, 'es');
+      });
+      
+      // Renderizar filas ordenadas
+      asistentes.forEach(({ id, data: a }) => {
         const row = document.createElement("tr");
-        row.className = "hover:bg-gray-50";
         row.innerHTML = `
           <td class="p-3 border-b"><input class="bg-transparent w-full focus:outline-none focus:bg-yellow-50 rounded px-1" value="${a.nombre || ''}" onchange="editarCampo('${id}', 'nombre', this.value)"></td>
           <td class="p-3 border-b"><input class="bg-transparent w-full focus:outline-none focus:bg-yellow-50 rounded px-1" value="${a.telefono || ''}" onchange="editarCampo('${id}', 'telefono', this.value)"></td>
@@ -183,7 +198,7 @@
     const exportExcelBtn = document.getElementById('export-excel');
     const exportPdfBtn = document.getElementById('export-pdf');
 
-    // --- FUNCIÓN OBTENER DATOS CORREGIDA ---
+    // --- FUNCIÓN OBTENER DATOS CORREGIDA---
     function obtenerDatosTabla() {
       const tbody = document.getElementById("tablaAsistentes");
       const datos = [];
